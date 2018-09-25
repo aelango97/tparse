@@ -68,10 +68,34 @@ func (d Dict) Parse(contents string) error {
 	kval := regexp.MustCompile("^[^\\[].*=.*")
 	empty := regexp.MustCompile("^\\s*$")
 	currentHeader := "root"
+	multiline := false
+	tempValue := ""
+	tempKey := ""
 	for i, val := range lines {
+		if multiline {
+			tempValue += "\n" + val
+			d[currentHeader][tempKey] = tempValue
+			if strings.HasSuffix(strings.TrimSpace(val), "`") {
+				d[currentHeader][tempKey] = strings.Trim(strings.TrimSpace(tempValue), "`")
+				tempValue = ""
+				tempKey = ""
+				multiline = false
+			}
+			continue
+		}
 		switch true {
 		case kval.MatchString(val):
 			key, value := getKeyValPair(val)
+			if strings.HasPrefix(value, "`") {
+				multiline = true
+				tempValue = value
+				tempKey = key
+			}
+			if strings.HasSuffix(value, "`") && multiline {
+				multiline = false
+				tempValue = ""
+				tempKey = ""
+			}
 			d[currentHeader][key] = value
 		case head.MatchString(val):
 			currentHeader = getHeader(val)
