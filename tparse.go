@@ -116,5 +116,8 @@ func getKeyValPair(kv string) (string, string) {
 			value += "="
 		}
 	}
-	return strings.TrimSpace(key), strings.TrimSpace(value)
+
+	value = strings.Trim(strings.TrimSpace(value), "\"")
+
+	return strings.TrimSpace(key), value
 }
